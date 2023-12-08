@@ -17,6 +17,9 @@ RUN apk add --no-cache curl
 # Install helm binary
 RUN curl -s https://get.helm.sh/helm-${HELM_VERSION}-linux-${TARGETARCH}.tar.gz > helm3.tar.gz && tar -zxvf helm3.tar.gz linux-${TARGETARCH}/helm && chmod +x linux-${TARGETARCH}/helm && mv linux-${TARGETARCH}/helm /usr/local/bin/helm && rm helm3.tar.gz && rm -R linux-${TARGETARCH}
 
+# add kine from image
+FROM rancher/kine:v0.11.1 as kine
+
 # we use alpine for easier debugging
 FROM alpine:3.20
 

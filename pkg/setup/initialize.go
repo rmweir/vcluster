@@ -17,6 +17,7 @@ import (
 	"github.com/loft-sh/vcluster/pkg/k0s"
 	"github.com/loft-sh/vcluster/pkg/k3s"
 	"github.com/loft-sh/vcluster/pkg/k8s"
+	"github.com/loft-sh/vcluster/pkg/oci"
 	"github.com/loft-sh/vcluster/pkg/pro"
 	"github.com/loft-sh/vcluster/pkg/specialservices"
 	"github.com/loft-sh/vcluster/pkg/telemetry"
@@ -106,6 +107,12 @@ func initialize(ctx context.Context, parentCtx context.Context, options *config.
 			if err != nil {
 				return fmt.Errorf("start embedded etcd: %w", err)
 			}
+		}
+
+		// pull vCluster from oci registry
+		err = oci.Pull(ctx, options.ControlPlaneClient, options.ControlPlaneNamespace)
+		if err != nil {
+			return err
 		}
 
 		// start k0s

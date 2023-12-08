@@ -56,6 +56,9 @@ RUN --mount=type=cache,id=gomod,target=/go/pkg/mod \
 
 ENTRYPOINT ["go", "run", "-mod", "vendor", "cmd/vcluster/main.go", "start"]
 
+# add kine from image
+FROM rancher/kine:v0.11.1 as kine
+
 # we use alpine for easier debugging
 FROM alpine:3.20
 

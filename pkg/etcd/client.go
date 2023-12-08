@@ -195,3 +195,4 @@ func (c *client) Compact(ctx context.Context, revision int64) (int64, error) {
 func (c *client) Close() error {
 	return c.c.Close()
 }
+

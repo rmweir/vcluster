@@ -124,6 +124,7 @@ func BuildRoot(log log.Logger) (*cobra.Command, *flags.GlobalFlags, error) {
 	rootCmd.AddCommand(use.NewUseCmd(globalFlags))
 	rootCmd.AddCommand(convert.NewConvertCmd(globalFlags))
 	rootCmd.AddCommand(cmdtelemetry.NewTelemetryCmd(globalFlags))
+	rootCmd.AddCommand(NewPushCmd(globalFlags))
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(NewInfoCmd(globalFlags))
 	rootCmd.AddCommand(set.NewSetCmd(globalFlags, defaults))

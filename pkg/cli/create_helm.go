@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/loft-sh/vcluster/pkg/oci"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -44,6 +45,8 @@ import (
 // CreateOptions holds the create cmd options
 type CreateOptions struct {
 	Driver string
+
+	From string
 
 	KubeConfigContextName string
 	ChartVersion          string
@@ -154,6 +157,68 @@ func CreateHelm(ctx context.Context, options *CreateOptions, globalFlags *flags.
 			}
 
 			return fmt.Errorf("vcluster %s already exists in namespace %s\n- Use `vcluster create %s -n %s --upgrade` to upgrade the vcluster\n- Use `vcluster connect %s -n %s` to access the vcluster", vClusterName, cmd.Namespace, vClusterName, cmd.Namespace, vClusterName, cmd.Namespace)
+		}
+	}
+
+	// should pull from OCI?
+	if cmd.From != "" {
+		cmd.log.Infof("Pull vCluster from %s", cmd.From)
+		vClusterConfig, err := oci.PullConfig(ctx, cmd.From)
+		if err != nil {
+			return fmt.Errorf("pull vCluster config: %w", err)
+		} else if vClusterConfig.ChartInfo == nil {
+			return fmt.Errorf("vCluster chart info missing")
+		}
+
+		if vClusterConfig.ChartInfo.Values == nil {
+			vClusterConfig.ChartInfo.Values = map[string]interface{}{}
+		}
+		if vClusterConfig.ChartInfo.Values["syncer"] == nil {
+			vClusterConfig.ChartInfo.Values["syncer"] = map[string]interface{}{}
+		}
+		if vClusterConfig.ChartInfo.Values["syncer"].(map[string]interface{})["env"] == nil {
+			vClusterConfig.ChartInfo.Values["syncer"].(map[string]interface{})["env"] = []interface{}{}
+		}
+		vClusterConfig.ChartInfo.Values["syncer"].(map[string]interface{})["env"] = append(vClusterConfig.ChartInfo.Values["syncer"].(map[string]interface{})["env"].([]interface{}), map[string]interface{}{
+			"name":  oci.PullOciImageEnv,
+			"value": cmd.From,
+		})
+
+		extraValues, err := yaml.Marshal(vClusterConfig.ChartInfo.Values)
+		if err != nil {
+			return fmt.Errorf("marshal vCluster values: %w", err)
+		}
+
+		// write a temporary values file
+		tempFile, err := os.CreateTemp("", "")
+		tempValuesFile := tempFile.Name()
+		if err != nil {
+			return fmt.Errorf("create temp values file: %w", err)
+		}
+		defer func(name string) {
+			_ = os.Remove(name)
+		}(tempValuesFile)
+		_, err = tempFile.Write(extraValues)
+		if err != nil {
+			return fmt.Errorf("write values to temp values file: %w", err)
+		}
+		err = tempFile.Close()
+		if err != nil {
+			return fmt.Errorf("close temp values file: %w", err)
+		}
+		cmd.Values = append(cmd.Values, tempValuesFile)
+
+		if vClusterConfig.ChartInfo.Version != "" {
+			cmd.ChartVersion = vClusterConfig.ChartInfo.Version
+		}
+		if vClusterConfig.ChartInfo.Name != "" {
+			cmd.ChartName = vClusterConfig.ChartInfo.Name
+		}
+
+		// write credentials
+		err = oci.CreateUserPasswordForRegistry(ctx, cmd.kubeClient, vClusterName, cmd.Namespace, cmd.From)
+		if err != nil {
+			return err
 		}
 	}
 

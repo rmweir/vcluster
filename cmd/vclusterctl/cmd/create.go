@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"context"
 	"fmt"
-
 	"github.com/loft-sh/log"
 	"github.com/loft-sh/vcluster/pkg/cli"
 	"github.com/loft-sh/vcluster/pkg/cli/config"
@@ -53,6 +52,9 @@ vcluster create test --namespace test
 	}
 
 	cobraCmd.Flags().StringVar(&cmd.Driver, "driver", "", "The driver to use for managing the virtual cluster, can be either helm or platform.")
+
+	// generic flags
+	cobraCmd.Flags().StringVar(&cmd.From, "from", "", "Tries to pull vCluster from an OCI registry")
 
 	create.AddCommonFlags(cobraCmd, &cmd.CreateOptions)
 	create.AddHelmFlags(cobraCmd, &cmd.CreateOptions)

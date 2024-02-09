@@ -65,6 +65,12 @@ func initialize(ctx context.Context, parentCtx context.Context, options *config.
 		migrateFrom = "https://" + options.Name + "-etcd:2379"
 	}
 
+	// pull vCluster from oci registry
+	err := oci.Pull(ctx, options.ControlPlaneClient, options.ControlPlaneNamespace)
+	if err != nil {
+		return err
+	}
+
 	// retrieve service cidr
 	serviceCIDR := options.ServiceCIDR
 	if serviceCIDR == "" {
@@ -107,12 +113,6 @@ func initialize(ctx context.Context, parentCtx context.Context, options *config.
 			if err != nil {
 				return fmt.Errorf("start embedded etcd: %w", err)
 			}
-		}
-
-		// pull vCluster from oci registry
-		err = oci.Pull(ctx, options.ControlPlaneClient, options.ControlPlaneNamespace)
-		if err != nil {
-			return err
 		}
 
 		// start k0s

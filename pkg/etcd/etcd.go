@@ -13,10 +13,10 @@ import (
 
 	"github.com/loft-sh/log/scanner"
 	"github.com/loft-sh/vcluster/pkg/constants"
+	"github.com/loft-sh/vcluster/pkg/util/compress"
 	"github.com/loft-sh/vcluster/pkg/util/loghelper"
 	"github.com/loft-sh/vcluster/pkg/util/random"
 	clientv3 "go.etcd.io/etcd/client/v3"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog/v2"
 )
 
@@ -31,7 +31,7 @@ var (
 	kubeRootCaCrt = regexp.MustCompile(`/registry/configmaps/[^/]+/kube-root-ca.crt`)
 )
 
-func Snapshot(ctx context.Context, scheme *runtime.Scheme) (string, error) {
+func Snapshot(ctx context.Context) (string, error) {
 	distro := constants.GetVClusterDistro()
 	if distro != constants.K3SDistro && distro != constants.K0SDistro {
 		// TODO: support k8s & eks
@@ -45,7 +45,7 @@ func Snapshot(ctx context.Context, scheme *runtime.Scheme) (string, error) {
 	}
 	defer f.Close()
 
-	etcdClient, err := GetEtcdClient(ctx, "", "unix://"+k3sKineSock)
+	etcdClient, err := GetEtcdClient(ctx, nil, "unix://"+k3sKineSock)
 	if err != nil {
 		return "", err
 	}
@@ -71,7 +71,7 @@ func Snapshot(ctx context.Context, scheme *runtime.Scheme) (string, error) {
 		}
 
 		// write key value
-		err = writeKeyValue(tarWriter, r.Key, r.Value)
+		err = compress.WriteKeyValue(tarWriter, r.Key, r.Value)
 		if err != nil {
 			return "", fmt.Errorf("writing key %s: %w", string(r.Key), err)
 		}
@@ -109,7 +109,7 @@ func Restore(ctx context.Context, data io.ReadCloser) error {
 
 	// get etcd client
 	klog.Info("Wait for kine to come up")
-	etcdClient, err := WaitForEtcdClient(ctx, "", "unix://"+k3sKineSock)
+	etcdClient, err := WaitForEtcdClient(ctx, nil, "unix://"+k3sKineSock)
 	if err != nil {
 		return err
 	}
@@ -118,7 +118,7 @@ func Restore(ctx context.Context, data io.ReadCloser) error {
 	klog.Info("Restoring etcd state")
 	tarReader := tar.NewReader(data)
 	for {
-		key, value, err := readKeyValue(tarReader)
+		key, value, err := compress.ReadKeyValue(tarReader)
 		if err != nil && !errors.Is(err, io.EOF) {
 			return fmt.Errorf("read etcd key/value: %w", err)
 		} else if errors.Is(err, io.EOF) || len(key) == 0 {

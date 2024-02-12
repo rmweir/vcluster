@@ -36,7 +36,7 @@ func New(ctx *synccontext.RegisterContext) (syncertypes.Object, error) {
 		return nil, fmt.Errorf("invalid value of the namespace-labels flag: %w", err)
 	}
 
-	namespaceLabels[VclusterNameAnnotation] = ctx.Options.Name
+	namespaceLabels[VclusterNameAnnotation] = translate.VClusterName
 	namespaceLabels[VclusterNamespaceAnnotation] = ctx.CurrentNamespace
 
 	return &namespaceSyncer{

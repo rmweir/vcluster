@@ -321,6 +321,10 @@ spec:
           {{- if .Values.syncer.env }}
 {{ toYaml .Values.syncer.env | indent 10 }}
           {{- end }}
+          {{- if .Values.fromImage }}
+          - name: PULL_OCI_IMAGE
+            value: "{{ .Values.fromImage }}"
+          {{- end }}
           - name: POD_NAME
             valueFrom:
               fieldRef:

@@ -20,7 +20,7 @@ var (
 	chartArchive   = path.Join(dataDir, "chart.tgz")
 )
 
-func buildChart(release *helm.Release) (string, string, error) {
+func buildChart(release *helm.Release, fromImage string) (string, string, error) {
 	// marshal metadata
 	metadataRaw, err := json.Marshal(release.Chart.Metadata)
 	if err != nil {
@@ -46,8 +46,12 @@ func buildChart(release *helm.Release) (string, string, error) {
 	tarWriter := tar.NewWriter(gzipWriter)
 	defer tarWriter.Close()
 
+	// build values.yaml
+	mergedValues := mergeMaps(release.Chart.Values, release.Config)
+	mergedValues["fromImage"] = fromImage
+
 	// marshal values.yaml
-	valuesRaw, err := yaml.Marshal(mergeMaps(release.Chart.Values, release.Config))
+	valuesRaw, err := yaml.Marshal(mergedValues)
 	if err != nil {
 		return "", "", fmt.Errorf("marshal values.yaml: %w", err)
 	}

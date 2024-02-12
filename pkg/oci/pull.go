@@ -20,9 +20,9 @@ import (
 	"k8s.io/klog/v2"
 )
 
-const PullOciImageEnv = "PULL_OCI_IMAGE"
-
 var alreadyRestoredPath = path.Join("/data", "restored.vcluster")
+
+const PullOciImageEnv = "PULL_OCI_IMAGE"
 
 func Pull(
 	ctx context.Context,
@@ -34,16 +34,16 @@ func Pull(
 	if target == "" {
 		return nil
 	}
-	klog.Infof("Try to pull vCluster from %s", target)
 
 	// check if restored already
-	_, err := os.Stat(alreadyRestoredPath)
-	if err == nil {
+	previousTarget, err := os.ReadFile(alreadyRestoredPath)
+	if err == nil && string(previousTarget) == target {
 		klog.Info("vCluster was already pulled")
 		return nil
 	}
 
 	// try to fetch username & password
+	klog.Infof("Try to pull vCluster from %s", target)
 	username, password, err := fetchUserPassword(ctx, hostClient, vClusterNamespace)
 	if err != nil {
 		return err
@@ -69,7 +69,7 @@ func Pull(
 	// TODO: restore PVCs
 
 	// make sure we don't restore another time
-	err = os.WriteFile(alreadyRestoredPath, nil, 0666)
+	err = os.WriteFile(alreadyRestoredPath, []byte(target), 0666)
 	if err != nil {
 		return err
 	}

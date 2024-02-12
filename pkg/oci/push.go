@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/loft-sh/vcluster/pkg/etcd"
 	"github.com/loft-sh/vcluster/pkg/registry"
@@ -28,7 +29,7 @@ func Push(
 	}
 
 	// get chart info
-	metadataLayer, chartLayer, err := buildChart(release)
+	metadataLayer, chartLayer, err := buildChart(release, target)
 	if err != nil {
 		return fmt.Errorf("build helm chart: %w", err)
 	}
@@ -75,7 +76,7 @@ func Push(
 }
 
 func ParseReference(target string) (string, string, string, error) {
-	ref, err := name.ParseReference(target)
+	ref, err := name.ParseReference(strings.ToLower(target))
 	if err != nil {
 		return "", "", "", err
 	}

@@ -6,7 +6,6 @@ import (
 	"runtime/debug"
 
 	"github.com/loft-sh/vcluster/pkg/oci"
-	"github.com/loft-sh/vcluster/pkg/scheme"
 	"github.com/loft-sh/vcluster/pkg/telemetry"
 	"github.com/loft-sh/vcluster/pkg/util/clienthelper"
 	"github.com/spf13/cobra"
@@ -76,7 +75,7 @@ func (cmd *PushCommand) Execute(ctx context.Context) error {
 	}
 
 	// push vCluster to registry
-	err = oci.Push(ctx, inClusterClient, currentNamespace, cmd.Destination, cmd.Username, cmd.Password, scheme.Scheme)
+	err = oci.Push(ctx, inClusterClient, currentNamespace, cmd.Destination, cmd.Username, cmd.Password)
 	if err != nil {
 		return err
 	}

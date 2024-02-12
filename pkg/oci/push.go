@@ -7,7 +7,6 @@ import (
 
 	"github.com/loft-sh/vcluster/pkg/etcd"
 	"github.com/loft-sh/vcluster/pkg/registry"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/google/go-containerregistry/pkg/name"
@@ -19,16 +18,23 @@ func Push(
 	vClusterNamespace string,
 	target string,
 	username, password string,
-	scheme *runtime.Scheme,
 ) error {
-	// get chart info
-	chartInfo, err := registry.GetChartInfo(ctx, hostClient, vClusterNamespace)
+	// get release info
+	release, err := registry.GetReleaseInfo(ctx, hostClient, vClusterNamespace)
 	if err != nil {
 		return fmt.Errorf("retrieve vCluster chart info: %w", err)
+	} else if release == nil || release.Chart == nil {
+		return fmt.Errorf("vCluster was not deployed via helm")
+	}
+
+	// get chart info
+	metadataLayer, chartLayer, err := buildChart(release)
+	if err != nil {
+		return fmt.Errorf("build helm chart: %w", err)
 	}
 
 	// get etcd snapshot
-	etcdSnapshot, err := etcd.Snapshot(ctx, scheme)
+	etcdSnapshot, err := etcd.Snapshot(ctx)
 	if err != nil {
 		return fmt.Errorf("retrieve etcd snapshot: %w", err)
 	}
@@ -45,8 +51,14 @@ func Push(
 	// push to registry
 	err = registry.Push(
 		ctx,
+		metadataLayer,
+		chartLayer,
 		&registry.VClusterConfig{
-			ChartInfo: chartInfo,
+			ChartInfo: &registry.ChartInfo{
+				Name:    release.Chart.Metadata.Name,
+				Version: release.Chart.Metadata.Version,
+				Values:  release.Config,
+			},
 		},
 		etcdSnapshot,
 		registryName,

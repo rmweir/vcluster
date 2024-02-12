@@ -13,3 +13,11 @@ const (
 	// PersistentVolumeLayerMediaType is the reserved media type for persistent volumes
 	PersistentVolumeLayerMediaType = "application/vnd.loft.vcluster.pv.v1.tar+gzip"
 )
+
+const (
+	// HelmChartLayerMediaType is the reserved media type for Helm chart package content
+	HelmChartLayerMediaType = "application/vnd.cncf.helm.chart.content.v1.tar+gzip"
+
+	// HelmConfigMediaType is the reserved media type for the Helm chart manifest config
+	HelmConfigMediaType = "application/vnd.cncf.helm.config.v1+json"
+)

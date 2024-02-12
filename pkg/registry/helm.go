@@ -10,7 +10,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func GetChartInfo(ctx context.Context, hostClient kubernetes.Interface, vClusterNamespace string) (*ChartInfo, error) {
+func GetReleaseInfo(ctx context.Context, hostClient kubernetes.Interface, vClusterNamespace string) (*helm.Release, error) {
 	if hostClient == nil {
 		return nil, fmt.Errorf("host client is empty")
 	}
@@ -19,25 +19,14 @@ func GetChartInfo(ctx context.Context, hostClient kubernetes.Interface, vCluster
 	if err != nil {
 		return nil, err
 	} else if release == nil {
-		return &ChartInfo{}, nil
+		return nil, nil
 	} else if kerrors.IsNotFound(err) {
-		return &ChartInfo{}, nil
+		return nil, nil
 	}
 
 	if release.Config == nil {
 		release.Config = map[string]interface{}{}
 	}
 
-	name := "unknown"
-	chartVersion := ""
-	if release.Chart != nil && release.Chart.Metadata != nil && release.Chart.Metadata.Name != "" {
-		name = release.Chart.Metadata.Name
-		chartVersion = release.Chart.Metadata.Version
-	}
-
-	return &ChartInfo{
-		Name:    name,
-		Version: chartVersion,
-		Values:  release.Config,
-	}, nil
+	return release, nil
 }

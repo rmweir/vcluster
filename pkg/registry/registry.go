@@ -20,12 +20,16 @@ import (
 )
 
 const (
-	configRef = "config"
-	etcdRef   = "etcd"
+	configRef       = "config"
+	etcdRef         = "etcd"
+	helmMetadataRef = "helm-metadata"
+	helmChartRef    = "helm-chart"
 )
 
 func Push(
 	ctx context.Context,
+	metadataLayer string,
+	chartLayer string,
 	vClusterConfig *VClusterConfig,
 	etcdSnapshot string,
 	registry,
@@ -43,6 +47,20 @@ func Push(
 
 	// create descriptor array
 	descriptors := []v1.Descriptor{}
+
+	// helm metadata layer
+	helmMetadataDescriptor, err := fs.Add(ctx, helmMetadataRef, HelmConfigMediaType, metadataLayer)
+	if err != nil {
+		return fmt.Errorf("add helm metadata %s to image", metadataLayer)
+	}
+	descriptors = append(descriptors, helmMetadataDescriptor)
+
+	// helm chart layer
+	helmChartDescriptor, err := fs.Add(ctx, helmChartRef, HelmChartLayerMediaType, chartLayer)
+	if err != nil {
+		return fmt.Errorf("add helm chart %s to image", chartLayer)
+	}
+	descriptors = append(descriptors, helmChartDescriptor)
 
 	// vCluster config
 	vClusterConfigFile, err := writeJSONFile(vClusterConfig)

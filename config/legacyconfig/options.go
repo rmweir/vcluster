@@ -127,7 +127,6 @@ func AddFlags(flags *pflag.FlagSet, options *VirtualClusterOptions) {
 	flags.StringVar(&options.ServiceName, "service-name", "", "The service name where the vcluster proxy will be available")
 	flags.BoolVar(&options.SetOwner, "set-owner", true, "If true, will set the same owner the currently running syncer pod has on the synced resources")
 
-	flags.StringVar(&options.Name, "name", "", "The name of the virtual cluster")
 	flags.StringVar(&options.BindAddress, "bind-address", "0.0.0.0", "The address to bind the server to")
 	flags.IntVar(&options.Port, "port", 8443, "The port to bind to")
 

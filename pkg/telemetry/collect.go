@@ -38,6 +38,15 @@ var (
 	Collector EventCollector = &noopCollector{}
 )
 
+type ChartInfo struct {
+	// Name of the chart that was deployed
+	Name string
+	// Version of the chart that was deployed
+	Version string
+	// Values of the chart that was deployed
+	Values map[string]interface{}
+}
+
 type EventCollector interface {
 	RecordStart(ctx context.Context)
 	RecordError(ctx context.Context, severity ErrorSeverityType, err error)

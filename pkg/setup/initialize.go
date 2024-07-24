@@ -15,6 +15,7 @@ import (
 	"github.com/loft-sh/vcluster/pkg/k0s"
 	"github.com/loft-sh/vcluster/pkg/k3s"
 	"github.com/loft-sh/vcluster/pkg/k8s"
+	"github.com/loft-sh/vcluster/pkg/oci"
 	"github.com/loft-sh/vcluster/pkg/options"
 	"github.com/loft-sh/vcluster/pkg/specialservices"
 	"github.com/loft-sh/vcluster/pkg/telemetry"
@@ -77,6 +78,12 @@ func initialize(
 	options *options.VirtualClusterOptions,
 ) error {
 	distro := constants.GetVClusterDistro()
+
+	// pull vCluster from oci registry
+	err := oci.Pull(ctx, currentNamespaceClient, currentNamespace)
+	if err != nil {
+		return err
+	}
 
 	// retrieve service cidr
 	var serviceCIDR string

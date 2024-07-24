@@ -149,7 +149,15 @@ type Metadata struct {
 
 // Chart holds the chart metadata
 type Chart struct {
-	Metadata *Metadata `json:"metadata,omitempty"`
+	Metadata  *Metadata              `json:"metadata,omitempty"`
+	Templates []Template             `json:"templates,omitempty"`
+	Values    map[string]interface{} `json:"values,omitempty"`
+	Files     []Template             `json:"files,omitempty"`
+}
+
+type Template struct {
+	Name string `json:"name,omitempty"`
+	Data []byte `json:"data,omitempty"`
 }
 
 // Secrets is a wrapper around an implementation of a kubernetes

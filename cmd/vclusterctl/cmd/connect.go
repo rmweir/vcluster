@@ -328,7 +328,7 @@ func (cmd *ConnectCmd) writeKubeConfig(kubeConfig *clientcmdapi.Config, vCluster
 			return err
 		}
 	} else {
-		err = os.WriteFile(cmd.KubeConfig, out, 0666)
+		err = os.WriteFile(cmd.KubeConfig, out, 0o666)
 		if err != nil {
 			return errors.Wrap(err, "write kube config")
 		}

@@ -63,7 +63,7 @@ func NewTranslator(ctx *synccontext.RegisterContext, eventRecorder record.EventR
 		return nil, err
 	}
 
-	name := ctx.Options.Name
+	name := translate.VClusterName
 	if name == "" {
 		name = ctx.Options.ServiceName
 	}
